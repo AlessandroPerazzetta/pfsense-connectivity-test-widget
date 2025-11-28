@@ -81,8 +81,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'json') {
             <?php endforeach; ?>
         </tbody>
     </table>
-    <form method="post">
+    <form method="post" style="display:inline;">
         <button name="connectivity_run_now" class="btn btn-primary btn-sm">Run Test Now</button>
+        <button name="clear_results" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to clear all results?');">Clear Results</button>
     </form>
     <hr>
     <div>
@@ -196,6 +197,14 @@ new Chart(ctx2, {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['connectivity_run_now'])) {
     exec('/usr/local/bin/connectivity-test.sh > /dev/null 2>&1 &');
     header("Refresh:0");
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear_results'])) {
+    if (file_exists(REPORT_PATH)) {
+        file_put_contents(REPORT_PATH, '');
+    }
+    header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
     exit();
 }
 ?>
