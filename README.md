@@ -45,7 +45,7 @@ To remove the widget and all related files:
 ## Files and Paths
 
 - **Test Script:** `/usr/local/bin/connectivity-test.sh`
-- **Widget:** `/usr/local/www/widgets/widgets/connectivity-test.widget.php`
+- **Widget:** `/usr/local/www/widgets/widgets/connectivity_test.widget.php`
 - **Data File:** `/usr/local/pkg/connectivity-test-report.json`
 - **Cron Job:** `/etc/cron.d/connectivity-test`
 
