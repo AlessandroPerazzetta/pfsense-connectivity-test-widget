@@ -5,25 +5,60 @@ require_once("functions.inc");
 require_once("guiconfig.inc");
 include_once("includes/functions.inc.php");
 
+// Get user-selected counts or use defaults
+$display_count = isset($_GET['display_count']) ? intval($_GET['display_count']) : 5;
+$chart_count = isset($_GET['chart_count']) ? intval($_GET['chart_count']) : 20;
+
+// Clamp values to reasonable ranges
+$display_count = max(1, min($display_count, 50));
+$chart_count = max(5, min($chart_count, 100));
+
 define('REPORT_PATH', '/usr/local/pkg/connectivity-test-report.json');
-define('DISPLAY_COUNT', 5);
-define('CHART_COUNT', 20);
 
 $results = [];
 $chart_results = [];
 if (file_exists(REPORT_PATH)) {
     $lines = array_filter(file(REPORT_PATH, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
-    $chart_lines = array_slice($lines, -CHART_COUNT);
+    $chart_lines = array_slice($lines, -$chart_count);
     foreach ($chart_lines as $line) {
         $row = json_decode($line, true);
         if (!$row) continue;
         $chart_results[] = $row;
     }
-    $results = array_slice($chart_results, -DISPLAY_COUNT);
+    $results = array_slice($chart_results, -$display_count);
+}
+
+if (isset($_GET['export']) && $_GET['export'] === 'json') {
+    header('Content-Type: application/json');
+    header('Content-Disposition: attachment; filename="connectivity-test-report.json"');
+    if (file_exists(REPORT_PATH)) {
+        readfile(REPORT_PATH);
+    }
+    exit;
 }
 ?>
 
 <div style="padding:8px;">
+    <form method="get" style="margin-bottom:12px; display:flex; gap:12px; align-items:center;">
+        <label>Show last
+            <select name="display_count">
+                <?php foreach ([1, 3, 5, 10, 20, 30, 50] as $opt): ?>
+                    <option value="<?=$opt?>" <?=($display_count==$opt?'selected':'')?>><?=$opt?></option>
+                <?php endforeach; ?>
+            </select>
+            results in table
+        </label>
+        <label>Chart history
+            <select name="chart_count">
+                <?php foreach ([5, 10, 20, 40, 60, 80, 100] as $opt): ?>
+                    <option value="<?=$opt?>" <?=($chart_count==$opt?'selected':'')?>><?=$opt?></option>
+                <?php endforeach; ?>
+            </select>
+            points
+        </label>
+        <button type="submit" class="btn btn-primary btn-xs">Apply</button>
+    </form>
+    <a href="?export=json" class="btn btn-default btn-xs" style="margin-bottom:8px;">Export JSON</a>
     <table class="table table-striped table-condensed table-hover">
         <thead>
             <tr>

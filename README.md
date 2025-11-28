@@ -2,6 +2,8 @@
 
 This project provides a simple connectivity test widget for the pfSense dashboard. It enables pfSense users to monitor their network latency and bandwidth directly from the dashboard, using scheduled speed tests and a visual widget.
 
+![Widget Screenshot](assets/widget.png)
+
 ## Features
 
 - **Automated Connectivity Tests:** Periodically runs ping and speed tests (download/upload) using `speedtest-cli` or `speedtest-go`.
@@ -48,6 +50,7 @@ To remove the widget and all related files:
 - **Widget:** `/usr/local/www/widgets/widgets/connectivity_test.widget.php`
 - **Data File:** `/usr/local/pkg/connectivity-test-report.json`
 - **Cron Job:** `/etc/cron.d/connectivity-test`
+- **Results Generation Script (for testing):** `generate-results.sh`
 
 ## License
 
