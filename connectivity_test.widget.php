@@ -29,6 +29,7 @@ if (file_exists(REPORT_PATH)) {
                 <th>Latency&nbsp;(ms)</th>
                 <th>Download</th>
                 <th>Upload</th>
+                <th>Packet Loss</th>
             </tr>
         </thead>
         <tbody>
@@ -38,6 +39,7 @@ if (file_exists(REPORT_PATH)) {
                 <td><?=htmlspecialchars($row["latency_ms"])?></td>
                 <td><?=htmlspecialchars($row["download"])?></td>
                 <td><?=htmlspecialchars($row["upload"])?></td>
+                <td><?=htmlspecialchars($row["packet_loss"])?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

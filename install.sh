@@ -7,6 +7,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
+TIP='\033[1;34m'   # Tip/Info color (bright blue)
 NC='\033[0m' # No Color
 
 show_usage() {
@@ -40,10 +41,24 @@ case "$1" in
                 eval "PKG_$i=$PKG"
                 i=$((i+1))
             done
-            printf "%b" "${YELLOW}Select package to install [1-$(($i-1))]: ${NC}"
+            # If speedtest-go is available in the list, show a note that it is recommended for better performance
+            PKG_NAMES=$(echo "$SPEEDTEST_PKGS" | awk -F/ '{print $2}')
+            if echo "$PKG_NAMES" | grep -qE '^speedtest-go$'; then
+                printf "%b\n" "${TIP}Note: 'speedtest-go' is recommended for better performance (packet loss on results) on pfSense.${NC}"
+            fi
+
+            printf "%b" "${YELLOW}Select package to install [1-$(($i-1)) or 'a' for all]: ${NC}"
             read CHOICE
-            eval "SELECTED_PKG=\$PKG_$CHOICE"
-            if [ -n "$SELECTED_PKG" ]; then
+            if [ "$CHOICE" = "a" ]; then
+                for IDX in $(seq 1 $(($i-1))); do
+                    eval "PKG_NAME=\$PKG_$IDX"
+                    if [ -n "$PKG_NAME" ]; then
+                        printf "%b\n" "${CYAN}Installing $PKG_NAME...${NC}"
+                        pkg install -y "$PKG_NAME"
+                    fi
+                done
+            elif eval "[ -n \"\$PKG_$CHOICE\" ]"; then
+                eval "SELECTED_PKG=\$PKG_$CHOICE"
                 printf "%b\n" "${CYAN}Installing $SELECTED_PKG...${NC}"
                 pkg install -y "$SELECTED_PKG"
             else
