@@ -89,7 +89,25 @@ case "$1" in
 
         # Ensure data file exists and is correct permissions
         printf "%b\n" "${CYAN}Setting up data file...${NC}"
-        touch /usr/local/pkg/connectivity-test-report.json
+        # If file does not exist, create it else ask user if they want to overwrite it
+        
+        if [ -f /usr/local/pkg/connectivity-test-report.json ]; then
+            printf "%b" "${YELLOW}Data file already exists. Do you want to overwrite it? (connectivity-test-report.json) [y/N]: ${NC}"
+            read OVERWRITE
+            if [ "$OVERWRITE" = "y" ] || [ "$OVERWRITE" = "Y" ]; then
+                printf "%b\n" "${CYAN}Overwriting data file...${NC}"
+                mv /usr/local/pkg/connectivity-test-report.json /usr/local/pkg/connectivity-test-report.json.bak
+                printf "%b\n" "${CYAN}Backup created at /usr/local/pkg/connectivity-test-report.json.bak${NC}"
+                touch /usr/local/pkg/connectivity-test-report.json
+            else
+                printf "%b\n" "${YELLOW}Skipping data file overwrite.${NC}"
+            fi
+        else
+            printf "%b\n" "${CYAN}Creating data file...${NC}"
+            touch /usr/local/pkg/connectivity-test-report.json
+        fi
+
+        # Set proper permissions on data file
         chmod 600 /usr/local/pkg/connectivity-test-report.json
 
         # Add cron job if not already present
@@ -136,7 +154,16 @@ case "$1" in
         printf "%b\n" "${CYAN}Uninstalling connectivity test script and widget...${NC}"
         rm -f /usr/local/bin/connectivity-test.sh
         rm -f /usr/local/www/widgets/widgets/connectivity_test.widget.php
-        rm -f /usr/local/pkg/connectivity-test-report.json
+        # Ask user for confirmation before deleting data file
+        printf "%b" "${YELLOW}Do you want to remove the connectivity test data file? (connectivity-test-report.json) [y/N]: ${NC}"
+        read REMOVE_DATA_FILE
+        if [ "$REMOVE_DATA_FILE" = "y" ] || [ "$REMOVE_DATA_FILE" = "Y" ]; then
+            printf "%b\n" "${CYAN}Removing data file...${NC}"
+            rm -f /usr/local/pkg/connectivity-test-report.json
+            printf "%b\n" "${GREEN}Data file removed.${NC}"
+        else
+            printf "%b\n" "${YELLOW}Skipping data file removal.${NC}"
+        fi
 
         printf "%b\n" "${CYAN}Removing cron job...${NC}"
         if [ -f /etc/cron.d/connectivity-test ]; then
