@@ -116,13 +116,24 @@ function build_cron_expr_and_effective($interval, $unit) {
 
 // --- Main logic ---
 
-// 1. Load settings from POST or cron file
+// Validate widgetkey once at the top
+if ($_POST['widgetkey'] || $_GET['widgetkey']) {
+    $rwidgetkey = $_POST['widgetkey'] ?? $_GET['widgetkey'] ?? null;
+    if (is_valid_widgetkey($rwidgetkey, $user_settings, __FILE__)) {
+        $widgetkey = $rwidgetkey;
+    } else {
+        print gettext("Invalid Widget Key");
+        exit;
+    }
+}
+
+// Handle POST (save settings)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // User is saving settings
     $enable_test = !empty($_POST['enable_test']);
     $interval = isset($_POST['custom_interval']) ? max(1, (int)$_POST['custom_interval']) : 60;
-    $unit = isset($_POST['custom_unit']) ? $_POST['custom_unit'] : 'min';
+    $unit = $_POST['custom_unit'] ?? 'min';
 
+    // Save to settings
     $user_settings['widgets'][$widgetkey]['enable_test'] = $enable_test;
     $user_settings['widgets'][$widgetkey]['custom_interval'] = $interval;
     $user_settings['widgets'][$widgetkey]['custom_unit'] = $unit;
@@ -148,25 +159,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     save_widget_settings($_SESSION['Username'], $user_settings["widgets"], gettext("Saved connectivity test Widget via Dashboard."));
     header("Location: /");
     exit;
-} else {
-    // Not saving: load from cron file if exists, else defaults
-    $enable_test = file_exists(CRON_FILE);
-    $interval = 60;
-    $unit = 'min';
-    if ($enable_test) {
-        foreach (file(CRON_FILE, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-            $parsed = parse_cron_line($line, CRON_LINE);
-            if ($parsed) {
-                $interval = $parsed['interval'];
-                $unit = $parsed['unit'];
-                break;
-            }
+}
+
+// Handle GET (load settings from cron or defaults)
+$enable_test = false;
+$interval = 60;
+$unit = 'min';
+if (file_exists(CRON_FILE)) {
+    foreach (file(CRON_FILE, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $parsed = parse_cron_line($line, CRON_LINE);
+        if ($parsed) {
+            $enable_test = true;
+            $interval = $parsed['interval'];
+            $unit = $parsed['unit'];
+            break;
         }
     }
-    $user_settings['widgets'][$widgetkey]['enable_test'] = $enable_test;
-    $user_settings['widgets'][$widgetkey]['custom_interval'] = $interval;
-    $user_settings['widgets'][$widgetkey]['custom_unit'] = $unit;
 }
+$user_settings['widgets'][$widgetkey]['enable_test'] = $enable_test;
+$user_settings['widgets'][$widgetkey]['custom_interval'] = $interval;
+$user_settings['widgets'][$widgetkey]['custom_unit'] = $unit;
+
+// Assign local variables for template use (optional, for brevity in HTML)
+$enable_test_s = $enable_test;
+$custom_interval_s = $interval;
+$custom_unit_s = $unit;
+
 
 // Now use $user_settings['widgets'][$widgetkey]['enable_test'], ['custom_interval'], ['custom_unit'] everywhere in your form and logic
 
