@@ -25,3 +25,8 @@ fi
 NOW=$(date +"%Y-%m-%d %H:%M:%S")
 
 echo "{\"timestamp\":\"$NOW\",\"latency_ms\":\"$LATENCY\",\"download\":\"$DOWNLOAD\",\"upload\":\"$UPLOAD\",\"packet_loss\":\"$PKT_LOSS\"}" >> "$REPORT"
+
+# Keep only the last 100 lines in the report file
+if [ "$(wc -l < "$REPORT")" -gt 100 ]; then
+    tail -n 100 "$REPORT" > "$REPORT.tmp" && mv "$REPORT.tmp" "$REPORT"
+fi
