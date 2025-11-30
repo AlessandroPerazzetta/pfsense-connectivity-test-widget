@@ -20,8 +20,8 @@ N=${1:-10}
 REPORT="/usr/local/pkg/connectivity-test-report.json"
 : > "$REPORT"
 
-i=1
-while [ "$i" -le "$N" ]; do
+i=$N
+while [ "$i" -ge 1 ]; do
     # Portable timestamp: subtract i*5 minutes from now
     # GNU date: date -d "now - $((i * 5)) minutes"
     # BSD date (macOS, *BSD): date -v-"$((i * 5))"M
@@ -42,7 +42,7 @@ while [ "$i" -le "$N" ]; do
     PACKET_LOSS=$(awk -v min=0 -v max=5 -v s=$((SEED+3)) 'BEGIN{srand(s); printf "%.2f", min+rand()*(max-min)}')
 
     echo "{\"timestamp\":\"$TIMESTAMP\",\"latency_ms\":\"$LATENCY\",\"download\":\"$DOWNLOAD Mbps\",\"upload\":\"$UPLOAD Mbps\",\"packet_loss\":\"$PACKET_LOSS%\"}" >> "$REPORT"
-    i=$((i + 1))
+    i=$((i - 1))
 done
 
 echo "Generated $N sample results in $REPORT"
